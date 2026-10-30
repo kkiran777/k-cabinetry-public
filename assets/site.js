@@ -223,6 +223,7 @@ const initCatalog = d => {
       '<div class="field"><label for="phone">Phone number</label><input id="phone" name="phone" type="tel" autocomplete="tel"></div>'+
       '<div class="field"><label for="type">Scope needed</label><select id="type" name="project"><option>Multifamily kitchen cabinets</option><option>Bathroom vanities</option><option>Countertops</option><option>Multiple scopes / bid package</option><option>Common areas</option></select></div>'+
       '<div class="field full"><label for="message">Project name, company, location, unit count and bid timeline *</label><textarea id="message" name="message" required></textarea></div></div>'+
+      '<div class="hp-field" aria-hidden="true"><label for="site-website">Leave this field blank</label><input id="site-website" name="website" tabindex="-1" autocomplete="off"></div>'+
       '<button class="btn" type="submit">Prepare bid inquiry <span aria-hidden="true">↗</span></button><div class="form-status" role="status" aria-live="polite"></div>'+
       '<p class="tiny">Without a configured form service, this opens your email application to send the inquiry. No message is stored on the website.</p></form></section>';
   };
@@ -383,7 +384,7 @@ const render = async (previewData=null) => {
             const r=await fetch(endpoint,{method:"POST",body:JSON.stringify(values),headers:{"Accept":"application/json","Content-Type":"application/json"}});
             if(!r.ok) throw Error("Form service returned "+r.status);
             status.textContent="Thank you. Your inquiry was submitted.";form.reset();
-          }catch(err){status.textContent="Couldn't submit automatically. Please email "+d.brand.email+"."; }
+          }catch(err){status.textContent=String(err?.message||"").includes("429")?"Too many attempts. Please try again later or email "+d.brand.email+".":"Couldn't submit automatically. Please email "+d.brand.email+"."; }
           finally{btn.disabled=false;}
         }else{
           const subject="K Cabinetry inquiry — "+values.project;

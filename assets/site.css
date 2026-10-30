@@ -147,3 +147,5 @@
 
 /* Public project portal login */
 .nav .login-nav-link{display:inline-flex;align-items:center;justify-content:center;border:1px solid #caa967;color:#caa967;padding:9px 15px;white-space:nowrap;font-weight:700;letter-spacing:.06em}.nav .login-nav-link:hover,.nav .login-nav-link:focus-visible{background:#caa967;color:#11140f}.nav .login-nav-link:after{display:none}@media(max-width:1100px){.nav .login-nav-link{margin:12px 0;width:max-content}}
+
+.hp-field{position:absolute!important;left:-10000px!important;width:1px!important;height:1px!important;overflow:hidden!important}
