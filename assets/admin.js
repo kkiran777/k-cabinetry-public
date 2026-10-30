@@ -1,7 +1,7 @@
 (() => {
 "use strict";
 const REPO="kkiran777/k-cabinetry-public",BRANCH="main",FOLDER="";
-const DOC=FOLDER+"/content/site.json",API="https://api.github.com/repos/"+REPO+"/contents/";
+const DOC=(FOLDER?FOLDER+"/":"")+"content/site.json",API="https://api.github.com/repos/"+REPO+"/contents/";
 let token="",data=null,sha="",dirty=false,active="brand",busy=false;
 let history=[],future=[];
 function snapshot(){if(!data)return;history.push(JSON.stringify(data));if(history.length>50)history.shift();future=[];}

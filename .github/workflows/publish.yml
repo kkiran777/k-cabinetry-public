@@ -1,0 +1,65 @@
+name: Publish K Cabinetry public website
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '*.html'
+      - 'assets/**'
+      - 'content/**'
+      - 'media/**'
+      - 'admin/**'
+      - 'CNAME'
+      - '.nojekyll'
+      - '.github/workflows/publish.yml'
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: kcabinetry-public-pages
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate site and referenced local media
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('.')
+          required=['index.html','request-a-bid.html','assets/site.js','assets/site.css','assets/admin.js','admin/index.html','content/site.json']
+          missing=[p for p in required if not (root/p).is_file()]
+          if missing: raise SystemExit('Missing site files: '+', '.join(missing))
+          data=json.loads(Path('content/site.json').read_text())
+          records=[]
+          for k in ('products','projects','catalog','cabinetCatalog'):
+              records.extend(data.get(k,[]) or [])
+          records+=data.get('cabinetConstruction',{}).get('details',[]) or []
+          records+=data.get('cabinetConfigurator',{}).get('colors',[]) or []
+          images=[r.get('image','') for r in records if isinstance(r,dict)]
+          images += [data.get('hero',{}).get('image',''),data.get('brand',{}).get('logo','')]
+          essential=sorted(set(x for x in images if isinstance(x,str) and x.startswith('media/') and not x.startswith('media/cabinet-finish-') and not Path(x).is_file()))
+          if essential: raise SystemExit('Missing website images: '+', '.join(essential))
+          print('Website verified')
+          PY
+      - name: Check JS
+        run: |
+          node --check assets/site.js
+          node --check assets/admin.js
+  deploy:
+    needs: validate
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: .
+      - uses: actions/deploy-pages@v4
+        id: deployment
