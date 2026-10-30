@@ -1,0 +1,510 @@
+{
+  "brand": {
+    "name": "K Cabinetry",
+    "logo": "media/k-cabinetry-original-logo.webp",
+    "tagline": "Turnkey Cabinetry & Countertops for Multifamily Construction · NATIONWIDE",
+    "phone": "(470) 243-8599",
+    "email": "info@kcabinetry.net",
+    "address": "The Bluffs, 7800 Austell Rd, Austell, GA 30168",
+    "hours": "Monday–Friday · 8:30 AM – 4:30 PM",
+    "instagram": "",
+    "facebook": ""
+  },
+  "hero": {
+    "eyebrow": "MULTIFAMILY CABINETRY & COUNTERTOP SUBCONTRACTOR",
+    "title": "Multifamily cabinetry. Built for the job.",
+    "description": "K Cabinetry provides complete cabinetry and countertop packages for multifamily projects. We manage estimating, shop drawings, material procurement, delivery, installation and punch-list completion—giving general contractors and developers one accountable partner for both scopes.",
+    "image": "media/1792958174752-64a1f02e-7325-4f5e-b0dd-7706e120acd8.png",
+    "ctaLabel": "Explore our scopes"
+  },
+  "home": {
+    "introLabel": "BUILT FOR MULTIFAMILY",
+    "introTitle": "A trade partner focused on the bigger picture.",
+    "introText": "From unit kitchens and bathrooms to shared spaces, we support multifamily teams with clear scope coordination, finish consistency and practical communication through the construction process.",
+    "introImage": "media/photo-1600607687920-4e2a09cf159d.jpg",
+    "productsTitle": "Scope-focused cabinetry & surfaces.",
+    "productsText": "Explore the cabinet, vanity and countertop scopes we support for multifamily construction.",
+    "valueTitle": "Built around construction schedules and project teams.",
+    "benefits": [
+      {
+        "number": "01",
+        "title": "Multifamily focus",
+        "body": "A scope-driven approach to repetitive unit layouts, coordinated finish packages and project requirements."
+      },
+      {
+        "number": "02",
+        "title": "GC & developer coordination",
+        "body": "Clear communication around plans, specifications, material choices and site coordination."
+      },
+      {
+        "number": "03",
+        "title": "Practical execution",
+        "body": "Attention to details, punch items and the needs of phased multifamily construction."
+      }
+    ],
+    "projectsTitle": "Multifamily finish inspiration.",
+    "projectsText": "Illustrative material and design directions for apartments, townhomes and shared spaces. Images shown are inspiration, not verified K Cabinetry projects.",
+    "ctaTitle": "Have a multifamily project to bid?",
+    "ctaText": "Send your project location, plans, unit count, target schedule and cabinetry or countertop scope. Our team can review the opportunity.",
+    "ctaImage": "media/1792960754265-chatgpt-image-oct-25-2026-04-37-34-pm.png"
+  },
+  "products": [
+    {
+      "id": "unit-kitchens",
+      "category": "01 / UNIT KITCHENS",
+      "title": "Apartment & Multifamily Kitchen Cabinets",
+      "short": "Consistent finishes across repeated unit types.",
+      "description": "Cabinetry scope coordination for multifamily kitchens, with attention to floor plans, cabinet schedules, finish selections and practical installation requirements.",
+      "image": "media/k-cabinetry-kitchen.webp",
+      "features": "Apartment and multifamily kitchens\nUnit-type cabinet layouts\nFinish and hardware coordination"
+    },
+    {
+      "id": "bath-vanities",
+      "category": "02 / UNIT BATHROOMS",
+      "title": "Bathroom Vanities",
+      "short": "Vanity scopes aligned with project specifications.",
+      "description": "Bathroom cabinetry and vanity planning for multiple unit types, designed around coordinated dimensions, finish packages and countertop interfaces.",
+      "image": "media/k-cabinetry-bathroom-vanity.webp",
+      "features": "Standard and accessible-unit considerations\nVanity finishes and dimensions\nCoordination with countertops and plumbing"
+    },
+    {
+      "id": "countertops",
+      "category": "03 / COUNTERTOPS",
+      "title": "Kitchen & Vanity Countertops",
+      "short": "A consistent finish across units and phases.",
+      "description": "Countertop scope support for unit kitchens, vanities and applicable common areas, with attention to material selections, edge details and installation coordination.",
+      "image": "media/k-cabinetry-countertops.webp",
+      "features": "Kitchen and vanity applications\nMaterial and finish selections\nField and trade coordination"
+    },
+    {
+      "id": "common-areas",
+      "category": "04 / SHARED SPACES",
+      "title": "Clubhouse & Common-Area Cabinetry",
+      "short": "Coordinated millwork for resident amenities.",
+      "description": "Discuss cabinetry and surface requirements for leasing offices, amenity spaces and other shared-area scopes included in your project documents.",
+      "image": "media/k-cabinetry-clubhouse.webp",
+      "features": "Amenity and leasing spaces\nDesign/specification coordination\nProject-specific scope reviews"
+    }
+  ],
+  "projects": [
+    {
+      "title": "Modern Apartment Kitchens",
+      "category": "Kitchen Cabinetry",
+      "description": "Cabinet door profiles, durable finishes, efficient storage and coordinated countertop selections for multifamily residences.",
+      "image": "media/k-cabinetry-kitchen.webp"
+    },
+    {
+      "title": "Bathroom Vanity Solutions",
+      "category": "Bathroom Vanities",
+      "description": "Vanity cabinetry and countertop combinations with clean lines, practical storage and durable finishes.",
+      "image": "media/k-cabinetry-bathroom-vanity.webp"
+    },
+    {
+      "title": "Countertop Finishes",
+      "category": "Countertops",
+      "description": "Quartz and stone-look surfaces selected to complement cabinetry across kitchens, bathrooms and amenity spaces.",
+      "image": "media/k-cabinetry-countertops.webp"
+    },
+    {
+      "title": "Shared-Space Millwork",
+      "category": "Clubhouse & Common Areas",
+      "description": "Built-in cabinetry, beverage stations and coordinated millwork concepts for multifamily amenity environments.",
+      "image": "media/k-cabinetry-clubhouse.webp"
+    }
+  ],
+  "about": {
+    "eyebrow": "ABOUT / MULTIFAMILY SUBCONTRACTING",
+    "title": "Focused on multifamily cabinetry scopes.",
+    "intro": "K Cabinetry serves multifamily project teams as a cabinetry and countertop subcontracting partner. We approach each opportunity through construction documents, scope alignment and ongoing team coordination.",
+    "image": "media/photo-1600566753086-00f18fb6b3ea.jpg",
+    "storyTitle": "A subcontractor mindset. A project-team approach.",
+    "storyText": "Our conversations start with drawings, unit mix, schedules, materials and the details that matter to general contractors and developers. We aim to make our trade scope easier to define, coordinate and deliver. Contact us to review project requirements and capabilities.",
+    "steps": [
+      {
+        "number": "01",
+        "title": "Review the bid package",
+        "description": "Share plans, unit schedules, specifications and relevant bid dates."
+      },
+      {
+        "number": "02",
+        "title": "Align on scope & selections",
+        "description": "Discuss cabinets, countertops, finish packages and coordination requirements."
+      },
+      {
+        "number": "03",
+        "title": "Plan project coordination",
+        "description": "Confirm next steps around submittals, scheduling, site conditions and installation scope where applicable."
+      }
+    ]
+  },
+  "contact": {
+    "eyebrow": "MULTIFAMILY BID OPPORTUNITIES",
+    "title": "Bring us your next project.",
+    "introduction": "General contractors, developers and project managers: send your multifamily cabinetry or countertop scope for review. Include the job location, unit count, plans and target timeline if available.",
+    "formEndpoint": "https://projects.kcabinetry.net/api/leads/8fef0c6e45524259974c96808b01e831",
+    "note": "Helpful details: company, project name, job address, number of units, bid due date, anticipated start and links to drawings/specifications. Please don't include confidential plans in this unencrypted form."
+  },
+  "settings": {
+    "announcement": "Turnkey Cabinetry & Countertops for Multifamily Construction · NATIONWIDE",
+    "announcementEnabled": true,
+    "design": {
+      "accent": "#caa967",
+      "background": "#fefdfa",
+      "dark": "#12140f",
+      "cream": "#f5f3ed",
+      "headingFont": "Playfair Display",
+      "bodyFont": "DM Sans",
+      "customCSS": ""
+    },
+    "navigation": [
+      {
+        "label": "Home",
+        "page": "home",
+        "visible": true
+      },
+      {
+        "label": "Scope of Work",
+        "page": "products",
+        "visible": true
+      },
+      {
+        "label": "Our Approach",
+        "page": "about",
+        "visible": true
+      },
+      {
+        "label": "Design Reference",
+        "page": "projects",
+        "visible": true
+      },
+      {
+        "label": "Request a Bid",
+        "page": "contact",
+        "visible": true
+      },
+      {
+        "label": "Our Products",
+        "page": "catalog",
+        "visible": true
+      }
+    ],
+    "sections": {
+      "ticker": true,
+      "intro": true,
+      "collections": true,
+      "benefits": true,
+      "projects": true,
+      "cta": true
+    },
+    "buttons": {
+      "heroSecondary": "Discuss a project",
+      "cta": "Send project details",
+      "quote": "Request a bid"
+    },
+    "seo": {
+      "homeTitle": "Multifamily Cabinets & Countertops | Subcontractor",
+      "homeDescription": "K Cabinetry supports multifamily construction projects in Georgia as a cabinetry and countertop subcontractor for general contractors, developers, and project teams.",
+      "productsTitle": "Multifamily Cabinetry & Countertop Scopes",
+      "productsDescription": "Review apartment kitchen cabinets, bathroom vanities, unit countertops and common-area cabinetry scopes.",
+      "projectsTitle": "Multifamily Finish & Design Reference",
+      "projectsDescription": "Illustrative multifamily kitchen, bath and amenity finish references. Photos are design inspiration, not verified completed projects.",
+      "aboutTitle": "Multifamily Subcontracting Approach",
+      "aboutDescription": "Learn how K Cabinetry approaches multifamily cabinetry and countertop construction scopes and project team coordination.",
+      "contactTitle": "Request a Multifamily Cabinetry Bid",
+      "contactDescription": "Discuss multifamily cabinetry and countertop bid opportunities with K Cabinetry."
+    },
+    "sectionOrder": [
+      "ticker",
+      "intro",
+      "collections",
+      "benefits",
+      "projects",
+      "cta"
+    ],
+    "customBlocks": [],
+    "pageBlocks": {
+      "home": [],
+      "products": [],
+      "projects": [],
+      "about": [],
+      "contact": [],
+      "catalog": [],
+      "cabinets": []
+    },
+    "pages": [],
+    "designCanvas": {
+      "enabled": true,
+      "elements": []
+    },
+    "textOverrides": {
+      "catalog": {
+        "text-30": "LEARN MORE\n↗"
+      }
+    }
+  },
+  "catalog": [
+    {
+      "name": "New Caledonia",
+      "material": "Granite",
+      "group": "Group 1",
+      "description": "Granite slab color reference.",
+      "image": "media/granite-new-caledonia.jpg"
+    },
+    {
+      "name": "Dallas White",
+      "material": "Granite",
+      "group": "Group 2",
+      "description": "Granite slab color reference.",
+      "image": "media/granite-dallas-white.jpg"
+    },
+    {
+      "name": "Luna Pearl",
+      "material": "Granite",
+      "group": "Group 1",
+      "description": "Granite slab color reference.",
+      "image": "media/granite-luna-pearl.jpg"
+    },
+    {
+      "name": "Black Pearl",
+      "material": "Granite",
+      "group": "Group 2",
+      "description": "Granite slab color reference.",
+      "image": "media/1793035439595-item-img-25127-black-pearl-dual-3388-1-6358-uc.jpg"
+    },
+    {
+      "name": "Viscon White",
+      "material": "Granite",
+      "group": "Group 2",
+      "description": "Granite slab color reference.",
+      "image": "media/1793035676647-item-img-23366-viscon-white-3207-5-2415-uc.jpg"
+    },
+    {
+      "name": "Blue Dunes",
+      "material": "Granite",
+      "group": "Group 2",
+      "description": "Granite slab color reference.",
+      "image": "media/1793035706838-item-img-24726-blue-dunes-3057-4-790-uc.jpg"
+    },
+    {
+      "name": "Elusive White",
+      "material": "Quartz",
+      "group": "Group 1",
+      "description": "Quartz slab color reference.",
+      "image": "media/1793036073972-item-img-100011-elusivewhite-33.jpg"
+    },
+    {
+      "name": "Olympic",
+      "material": "Quartz",
+      "group": "Group 1",
+      "description": "Quartz slab color reference.",
+      "image": "media/1793036237098-item-img-100018-olympic-31.jpg"
+    },
+    {
+      "name": "Crystal",
+      "material": "Quartz",
+      "group": "Group 1",
+      "description": "Quartz slab color reference.",
+      "image": "media/1793036270034-item-img-242351-crystal-mq.jpg"
+    },
+    {
+      "name": "Feather White",
+      "material": "Quartz",
+      "group": "Group 1",
+      "description": "Quartz slab color reference.",
+      "image": "media/1793036310432-item-img-100013-featherwhite-34.jpg"
+    },
+    {
+      "name": "Steel Grey",
+      "material": "Granite",
+      "group": "Group 1",
+      "description": "Granite slab color reference.",
+      "image": "media/1793037502666-item-img-24788-steel-grey-3052-3-6376-uc.jpg"
+    },
+    {
+      "name": "Designer White",
+      "material": "Quartz",
+      "group": "Group 2",
+      "description": "Quartz slab color reference.",
+      "image": "media/1793039327517-item-img-65754-designer-white-mq-close-up.jpg"
+    },
+    {
+      "name": "Chinook Grey",
+      "material": "Quartz",
+      "group": "Group 2",
+      "description": "Quartz slab color reference.",
+      "image": "media/1793039516579-item-img-65753-chinookgrey-25.jpg"
+    },
+    {
+      "name": "Carrara Deluxe",
+      "material": "Quartz",
+      "group": "Group 2",
+      "description": "Quartz slab color reference.",
+      "image": "media/1793039568196-item-img-128060-carrara-deluxe-1.jpg"
+    }
+  ],
+  "cabinetCatalog": [
+    {
+      "name": "Modern Shaker Kitchen Cabinets",
+      "group": "Kitchen Cabinets",
+      "description": "Apartment kitchen cabinet reference.",
+      "image": "media/k-cabinetry-kitchen.webp"
+    },
+    {
+      "name": "Contemporary Bathroom Vanity Cabinets",
+      "group": "Bathroom Vanities",
+      "description": "Multifamily vanity cabinetry reference.",
+      "image": "media/k-cabinetry-bathroom-vanity.webp"
+    }
+  ],
+  "cabinetConstruction": {
+    "eyebrow": "BUILT FOR MULTIFAMILY PROJECTS",
+    "title": "Cabinet Construction Details",
+    "intro": "Construction specifications for our plywood cabinet boxes, Shaker-style doors, hardware and installation-ready components.",
+    "details": [
+      {
+        "title": "Cabinet Box",
+        "description": "1/2\" plywood box with white melamine finish",
+        "image": "media/spec-cabinet-box.webp"
+      },
+      {
+        "title": "Cabinet Back",
+        "description": "Full 1/2\" plywood back, one-sided",
+        "image": "media/spec-cabinet-back.webp"
+      },
+      {
+        "title": "Cabinet End Panel",
+        "description": "Matching color ends as doors",
+        "image": "media/spec-cabinet-end-panel.webp"
+      },
+      {
+        "title": "Box Assembly",
+        "description": "Pre-glued bore and dowel construction",
+        "image": "media/spec-box-assembly.webp"
+      },
+      {
+        "title": "Door Panel",
+        "description": "Shaker style",
+        "image": "media/spec-door-panel.webp"
+      },
+      {
+        "title": "Door Style",
+        "description": "Full overlay",
+        "image": "media/spec-door-style.webp"
+      },
+      {
+        "title": "Cabinet Finish",
+        "description": "Paint / stain",
+        "image": "media/spec-cabinet-finish.webp"
+      },
+      {
+        "title": "Hinges",
+        "description": "Concealed soft-close hinges",
+        "image": "media/spec-hinges.webp"
+      },
+      {
+        "title": "Shelves",
+        "description": "1/2\" plywood shelves matching the cabinet box",
+        "image": "media/spec-shelves.webp"
+      },
+      {
+        "title": "Toe Kick",
+        "description": "1/2\" thick plywood removable toe kick",
+        "image": "media/spec-toe-kick.webp"
+      },
+      {
+        "title": "Drawers",
+        "description": "5/8\" plywood dovetail drawer box, soft-close drawer guides with full extension",
+        "image": "media/1793044039553-modern-dovetail-drawer-feature.png"
+      }
+    ],
+    "note1": "Fillers, scribe and toe kicks will be matched with the door colors.",
+    "note2": "Hardware pulls will be provided as per specifications."
+  },
+  "cabinetConfigurator": {
+    "title": "Build Your Cabinet Finish",
+    "intro": "Select cabinet construction, door style and a finish to preview a coordinated cabinet look. Confirm exact specifications and physical samples with our team.",
+    "materials": [
+      {
+        "name": "Particle Board",
+        "level": "",
+        "description": "Economical cabinet-box construction for value-driven multifamily programs."
+      },
+      {
+        "name": "Plywood",
+        "level": "",
+        "description": "Premium cabinet-box option; 1/2\" plywood construction with white melamine finish."
+      }
+    ],
+    "doorStyles": [
+      {
+        "name": "Shaker",
+        "description": "Classic recessed-panel door"
+      },
+      {
+        "name": "Slab",
+        "description": "Clean, modern flat-panel door"
+      },
+      {
+        "name": "Slim Shaker",
+        "description": "Narrow-frame contemporary door"
+      }
+    ],
+    "colors": [
+      {
+        "name": "Shaker Espresso",
+        "hex": "#33211f",
+        "image": "media/cabinet-finish-0.webp"
+      },
+      {
+        "name": "Navy Blue",
+        "hex": "#34394d",
+        "image": "media/cabinet-finish-1.webp"
+      },
+      {
+        "name": "Iron Black",
+        "hex": "#202329",
+        "image": "media/cabinet-finish-2.webp"
+      },
+      {
+        "name": "Treasure Chest",
+        "hex": "#bd9066",
+        "image": "media/cabinet-finish-3.webp"
+      },
+      {
+        "name": "Ashton Green",
+        "hex": "#535e51",
+        "image": "media/cabinet-finish-4.webp"
+      },
+      {
+        "name": "Smokey Ash",
+        "hex": "#51504d",
+        "image": "media/cabinet-finish-5.webp"
+      },
+      {
+        "name": "Luna Grey",
+        "hex": "#cdc8c5",
+        "image": "media/cabinet-finish-6.webp"
+      },
+      {
+        "name": "Rustic Wood",
+        "hex": "#69534a",
+        "image": "media/cabinet-finish-7.webp"
+      },
+      {
+        "name": "Saga Breeze",
+        "hex": "#929f90",
+        "image": "media/cabinet-finish-8.webp"
+      },
+      {
+        "name": "Double Smokey Grey",
+        "hex": "#535451",
+        "image": "media/cabinet-finish-9.webp"
+      },
+      {
+        "name": "Double Dove White",
+        "hex": "#ebe8e5",
+        "image": "media/cabinet-finish-10.webp"
+      }
+    ]
+  }
+}
