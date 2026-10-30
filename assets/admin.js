@@ -1,0 +1,528 @@
+(() => {
+"use strict";
+const REPO="kkiran777/k-cabinetry-public",BRANCH="main",FOLDER="";
+const DOC=FOLDER+"/content/site.json",API="https://api.github.com/repos/"+REPO+"/contents/";
+let token="",data=null,sha="",dirty=false,active="brand",busy=false;
+let history=[],future=[];
+function snapshot(){if(!data)return;history.push(JSON.stringify(data));if(history.length>50)history.shift();future=[];}
+function undoRedo(undo){const source=undo?history:future,dest=undo?future:history;if(!source.length)return;dest.push(JSON.stringify(data));data=JSON.parse(source.pop());markDirty();render();updatePreview();}
+
+const $=(s,root=document)=>root.querySelector(s);
+const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const schemas={
+ cabConfig:{title:"Cabinet Finish Selector",description:"Edit selector title and introduction.",basePath:"cabinetConfigurator",fields:[["title","Heading"],["intro","Instructions","textarea"]]},
+ cabColors:{title:"Cabinet Finish Colors",description:"Add, remove or reorder cabinet finishes. Upload a photo for each finish and use a matching color hex as backup.",arrayPath:"cabinetConfigurator.colors",fields:[["name","Finish name"],["hex","Preview color (hex)"],["image","Finish swatch image","image"]]},
+ cabStyles:{title:"Cabinet Door Styles",description:"Edit door style choices. Slab and Slim Shaker have distinct preview shapes.",arrayPath:"cabinetConfigurator.doorStyles",fields:[["name","Door style"],["description","Description","textarea"]]},
+ cabMaterials:{title:"Cabinet Box Materials",description:"Edit basic particle board and upgraded plywood options.",arrayPath:"cabinetConfigurator.materials",fields:[["name","Material"],["level","Tier"],["description","Description","textarea"]]},
+ cabinetSpecs:{title:"Cabinet Construction Specifications",description:"Add, edit, reorder or remove construction specifications.",arrayPath:"cabinetConstruction.details",fields:[["title","Construction component"],["description","Specification","textarea"],["image","Construction illustration","image"]]},
+ cabinetSpecIntro:{title:"Cabinet Construction Text",description:"Edit the construction heading, introduction and footnotes.",fields:[["eyebrow","Label"],["title","Heading"],["intro","Introduction","textarea"],["note1","First note","textarea"],["note2","Second note","textarea"]],basePath:"cabinetConstruction"},
+ cabinets:{title:"Cabinet Products",description:"Edit cabinet products and images",arrayPath:"cabinetCatalog",fields:[["name","Name"],["group","Group"],["description","Description","textarea"],["image","Image","image"]]},
+ catalog:{title:"Granite & Quartz Catalog",description:"Add, edit, reorder or remove product samples. Set Material to Granite or Quartz and Group to Group 1 or another collection.",arrayPath:"catalog",fields:[["name","Product name"],["material","Material: Granite or Quartz"],["group","Collection / group"],["description","Product description","textarea"],["image","Product image","image"]]},
+ pages:{title:"Pages Manager",description:"Create and manage your new pages."},
+ canvas:{title:"Design canvas",description:"Position elements and motion effects"},
+ builder:{title:"Visual page builder",description:"Drag, reorder, edit and live-preview your homepage."},
+
+ announcement:{title:"Announcement bar",description:"Edit the thin banner at the top of your website.",fields:[["announcementEnabled","Show announcement bar","checkbox"],["announcement","Announcement text","textarea"]],basePath:"settings"},
+ design:{title:"Brand colors & typography",description:"Update your site-wide appearance without editing CSS.",fields:[["accent","Gold / accent color","color"],["background","Page background","color"],["dark","Dark panels / header","color"],["cream","Cream background","color"],["headingFont","Heading font","font"],["bodyFont","Body font","font"],["customCSS","Advanced custom CSS","textarea"]],basePath:"settings.design"},
+ navigation:{title:"Menus & navigation",description:"Change menu names, visibility and their order.",arrayPath:"settings.navigation",fields:[["label","Menu label"],["page","Page key: home, about, products, projects or contact"],["visible","Show in menu","checkbox"]]},
+ sections:{title:"Homepage visibility",description:"Show or hide entire sections on your homepage.",fields:[["ticker","Feature strip","checkbox"],["intro","Welcome / about section","checkbox"],["collections","Product collection cards","checkbox"],["benefits","Why choose us section","checkbox"],["projects","Inspiration feature","checkbox"],["cta","Bottom call-to-action","checkbox"]],basePath:"settings.sections"},
+ buttons:{title:"Buttons & calls to action",description:"Edit the text of the primary navigation and marketing buttons.",fields:[["heroSecondary","Secondary hero button"],["cta","Bottom banner button"],["quote","Navigation quote button"]],basePath:"settings.buttons"},
+ seo:{title:"Search engine settings",description:"Manage browser tab titles and search-result descriptions for each page.",fields:[
+ ["homeTitle","Homepage SEO title"],["homeDescription","Homepage description","textarea"],["productsTitle","Products SEO title"],["productsDescription","Products description","textarea"],["projectsTitle","Inspiration SEO title"],["projectsDescription","Inspiration description","textarea"],["aboutTitle","About SEO title"],["aboutDescription","About description","textarea"],["contactTitle","Contact SEO title"],["contactDescription","Contact description","textarea"]],basePath:"settings.seo"},
+
+ brand:{title:"Brand & contact",description:"Your logo, business contact details and footer information.",fields:[
+ ["name","Business name"],["logo","Brand logo","image"],["tagline","Tagline","textarea"],["phone","Phone number"],["email","Public email address"],["address","Business address","textarea"],["hours","Business hours"],["instagram","Instagram URL"],["facebook","Facebook URL"]]},
+ hero:{title:"Homepage hero",description:"The first section visitors see when they land on your site.",fields:[
+ ["eyebrow","Small heading"],["title","Main headline","textarea"],["description","Introduction","textarea"],["image","Large hero photo","image"],["ctaLabel","Primary button text"]]},
+ home:{title:"Homepage sections",description:"Control the welcome section, product intro, inspiration and closing banner.",fields:[
+ ["introLabel","Intro eyebrow"],["introTitle","Intro headline"],["introText","Intro paragraph","textarea"],["introImage","Intro photo","image"],["productsTitle","Products heading"],["productsText","Products intro","textarea"],["valueTitle","Why choose us heading"],["projectsTitle","Inspiration heading"],["projectsText","Inspiration copy","textarea"],["ctaTitle","Bottom banner headline"],["ctaText","Bottom banner copy","textarea"],["ctaImage","Bottom banner photo","image"]]},
+ benefits:{title:"Service highlights",description:"The three value statements displayed on the homepage.",arrayPath:"home.benefits",fields:[
+ ["number","Number"],["title","Heading"],["body","Description","textarea"]]},
+ products:{title:"Product collections",description:"Manage cards and details on the Products page. Add, reorder or remove items.",arrayPath:"products",fields:[
+ ["id","URL anchor / unique ID"],["category","Category eyebrow"],["title","Product name"],["short","Short description","textarea"],["description","Product detail","textarea"],["image","Product image","image"],["features","Feature list (one per line)","textarea"]]},
+ projects:{title:"Inspiration gallery",description:"Inspiration photos and categories. Replace these with permission-cleared project photos when ready.",arrayPath:"projects",fields:[
+ ["title","Image title"],["category","Gallery category"],["description","Caption","textarea"],["image","Gallery image","image"]]},
+ about:{title:"About page",description:"Tell your company's story and explain your approach.",fields:[
+ ["eyebrow","Small heading"],["title","Page title","textarea"],["intro","Introduction","textarea"],["image","About page photo","image"],["storyTitle","Story heading"],["storyText","Our story","textarea"]]},
+ steps:{title:"Our process",description:"The process steps on the About page.",arrayPath:"about.steps",fields:[
+ ["number","Step number"],["title","Step title"],["description","Step description","textarea"]]},
+ contact:{title:"Contact page",description:"The contact page copy and optional form endpoint.",fields:[
+ ["eyebrow","Small heading"],["title","Page heading"],["introduction","Introduction","textarea"],["note","Form instructions","textarea"],["formEndpoint","HTTPS form submission endpoint"]]}
+};
+const sections=["pages","canvas","builder","brand","design","announcement","navigation","sections","buttons","hero","home","benefits","products","catalog","cabinets","cabConfig","cabMaterials","cabStyles","cabColors","cabinetSpecIntro","cabinetSpecs","projects","about","steps","contact","seo"];
+const status=(message,problem=false,selector="#editor-status")=>{
+ const el=$(selector); if(!el)return;el.textContent=message||"";el.classList.toggle("error",!!problem);
+};
+function markDirty(){
+ dirty=true;
+ $("#publish").disabled=busy;
+ const state=$("#change-state");
+ state.textContent="Unpublished changes";state.classList.add("dirty");
+ status("");
+}
+function markClean(){
+ dirty=false;$("#publish").disabled=true;
+ const state=$("#change-state");state.textContent="All changes published";state.classList.remove("dirty");
+}
+function getValue(path){return path.split(".").reduce((obj,key)=>obj?.[key],data);}
+function putValue(path,value){
+ const parts=path.split(".");let obj=data;
+ for(let i=0;i<parts.length-1;i++){if(obj[parts[i]]==null){if(path.startsWith("settings.textOverrides."))obj[parts[i]]={};else return;}obj=obj[parts[i]];}
+ snapshot();obj[parts[parts.length-1]]=value;markDirty();updatePreview();
+}
+function fieldHTML(label,type,path){
+ const rawValue=getValue(path);
+ const value=String(rawValue??"");
+ const key=esc(path),caption=esc(label);
+ let control;
+ if(type==="checkbox")control='<input type="checkbox" data-path="'+key+'" '+(rawValue===true?"checked":"")+' aria-label="'+caption+'">';
+ else if(type==="color")control='<input type="color" data-path="'+key+'" value="'+(/^#[0-9a-f]{6}$/i.test(value)?esc(value):"#caa967")+'">';
+ else if(type==="font")control='<select data-path="'+key+'">'+["Playfair Display","DM Sans","Manrope","Georgia","Arial"].map(v=>'<option value="'+esc(v)+'" '+(value===v?"selected":"")+' >'+esc(v)+'</option>').join("")+'</select>';
+ else if(type==="textarea")control='<textarea data-path="'+key+'" rows="4">'+esc(value)+'</textarea>';
+ else control='<input type="text" data-path="'+key+'" value="'+esc(value)+'" autocomplete="off">';
+ if(type==="image"){
+   const src=/^https:\/\//i.test(value)?value:/^(?:\.\/)?media\//i.test(value)?"../"+value:"";
+   return '<div class="field wide"><label>'+caption+'</label><div class="image-tool">'+control+
+    '<button type="button" class="upload-btn" data-upload="'+key+'">Upload photo</button></div>'+
+    (src?'<div class="image-preview"><img src="'+esc(src)+'" alt="'+caption+' preview" loading="lazy"></div>':'')+
+    '<small class="help-line">Paste a secure image URL or upload a photo (JPG, PNG, WebP, AVIF or GIF; up to 4 MB).</small></div>';
+ }
+ const wide=type==="textarea"||label.length>32;
+ return '<div class="field'+(wide?' wide':'')+'"><label>'+caption+'</label>'+control+'</div>';
+}
+
+// Visual page builder: hero remains fixed; all other homepage sections can be reordered.
+const BLOCKS=[
+ {id:"ticker",name:"Trust & service strip",detail:"Three value statements below the hero",tab:"sections"},
+ {id:"intro",name:"Welcome / about",detail:"Large feature image and introduction",tab:"home"},
+ {id:"collections",name:"Product collections",detail:"Featured product cards",tab:"products"},
+ {id:"benefits",name:"Why choose us",detail:"Three service highlights",tab:"benefits"},
+ {id:"projects",name:"Inspiration showcase",detail:"Featured project imagery",tab:"projects"},
+ {id:"cta",name:"Contact banner",detail:"Final call-to-action section",tab:"home"}
+];
+let previewTimer=null,draggedId=null,previewMode="desktop",previewPage="home";
+function updatePreview(){
+ if(active!=="builder")return;
+ clearTimeout(previewTimer);
+ previewTimer=setTimeout(()=>{
+   const frame=$("#builder-frame");
+   if(frame?.contentWindow&&data)frame.contentWindow.postMessage({type:"K_CABINETRY_PREVIEW",payload:data},location.origin);
+ },180);
+}
+
+const CUSTOM_TYPES={
+ text:{label:"Text section",description:"Heading and button"},
+ image:{label:"Image + text",description:"Photo or animated GIF"},
+ banner:{label:"Full-width banner",description:"Hero-style photo"},
+ spacer:{label:"Section spacer",description:"Vertical spacing"},
+ animated:{label:"Animated image / motion",description:"GIF, WebP or floating image"},
+ video:{label:"Video feature",description:"YouTube or MP4"},
+ slider:{label:"Image carousel",description:"Autoplay gallery"},
+ columns:{label:"Two-column feature",description:"Split content"},
+ marquee:{label:"Scrolling message",description:"Animated text strip"}
+};
+
+const PAGE_NAMES={home:"Homepage",products:"Scope of Work",catalog:"Countertops",cabinets:"Cabinets",projects:"Inspiration page",about:"About page",contact:"Contact page"};
+function currentOrder(){
+ ensureCustom();
+ return previewPage==="home"?data.settings.sectionOrder:(data.settings.pageBlocks[previewPage]||[]);
+}
+function setCurrentOrder(order){
+ if(previewPage==="home")data.settings.sectionOrder=order;
+ else data.settings.pageBlocks[previewPage]=order;
+}
+function customOnPage(){return data.settings.customBlocks.filter(b=>(b.page||"home")===previewPage);}
+
+function ensureCustom(){
+ data.settings ||= {};
+ data.settings.customBlocks ||= [];
+ data.settings.sectionOrder ||= BLOCKS.map(b=>b.id);
+ data.settings.pageBlocks ||= {home:[],products:[],projects:[],about:[],contact:[]};
+ for(const p of Object.keys(PAGE_NAMES))data.settings.pageBlocks[p] ||= [];
+}
+function newCustomBlock(type,original){
+ ensureCustom();
+ const id="custom-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,6);
+ const b={id,type,title:"Your next great idea.",body:"Edit this section's text, photo and button in the page builder.",image:"",motion:"float",video:"",images:"",buttonText:"Learn more",buttonUrl:"./contact.html",visible:true,...(original||{})};
+ b.id=id;b.type=type;b.page=previewPage;data.settings.customBlocks.push(b);currentOrder().push(id);
+ markDirty();render();updatePreview();
+}
+function customCard(b){
+ const type=CUSTOM_TYPES[b.type]||CUSTOM_TYPES.text;
+ const visible=b.visible!==false;
+ return '<div class="builder-card custom-card" draggable="true" data-block="'+esc(b.id)+'" tabindex="0"><span class="drag-handle" title="Drag to reorder">⠿</span>'+
+ '<div class="builder-card-body"><strong>'+esc(b.title||type.label)+'</strong><small>'+esc(type.label)+'</small></div>'+
+ '<label class="builder-visibility"><input type="checkbox" data-custom-visible="'+esc(b.id)+'" '+(visible?"checked":"")+'> Show</label>'+
+ '<button type="button" data-custom-edit="'+esc(b.id)+'">Edit</button>'+
+ '<button type="button" data-custom-duplicate="'+esc(b.id)+'" title="Duplicate block">⧉</button>'+
+ '<button type="button" data-block-up="'+esc(b.id)+'">↑</button><button type="button" data-block-down="'+esc(b.id)+'">↓</button>'+
+ '<button type="button" data-custom-delete="'+esc(b.id)+'" title="Delete section">×</button></div>';
+}
+function customEditPanel(){
+ const selected=window.kSelectedCustom;
+ const b=customOnPage().find(x=>x.id===selected);
+ if(!b)return "";
+ const i=data.settings.customBlocks.findIndex(x=>x.id===selected);
+ return '<div class="builder-panel custom-editor"><strong>Editing: '+esc(CUSTOM_TYPES[b.type]?.label||"Custom section")+'</strong>'+
+ '<p>Edit the selected block below. Updates show immediately in the preview.</p>'+
+ fieldHTML("Heading",null,"settings.customBlocks."+i+".title")+
+ fieldHTML("Description","textarea","settings.customBlocks."+i+".body")+
+ (b.type!=="spacer"?fieldHTML("Section image / background","image","settings.customBlocks."+i+".image"):"")+
+ (b.type==="video"?fieldHTML("Video URL (YouTube or direct MP4)",null,"settings.customBlocks."+i+".video"):"")+
+ (b.type==="slider"?fieldHTML("Image URLs, one per line","textarea","settings.customBlocks."+i+".images"):"")+
+ (b.type==="animated"?fieldHTML("Motion: none, fade, float, zoom, slide",null,"settings.customBlocks."+i+".motion"):"")+
+ (b.type!=="spacer"?fieldHTML("Button label",null,"settings.customBlocks."+i+".buttonText"):"")+
+ (b.type!=="spacer"?fieldHTML("Button link",null,"settings.customBlocks."+i+".buttonUrl"):"")+
+ '<button type="button" data-custom-done="1">Done editing</button></div>';
+}
+let selectedCatalogIndex=-1;
+function renderBuilder(){
+ $("#editor-nav").innerHTML=sections.map(id=>'<button type="button" class="'+(id===active?"active":"")+'" data-tab="'+id+'">'+esc(schemas[id].title)+'</button>').join("");
+ const root=$("#editor");
+ ensureCustom();
+ if(!Array.isArray(data.settings.sectionOrder))data.settings.sectionOrder=BLOCKS.map(b=>b.id);
+ const home=previewPage==="home";
+ const available=customOnPage();
+ const order=[...new Set([...(currentOrder()),...(home?BLOCKS.map(b=>b.id):[]),...available.map(b=>b.id)])].filter(id=>(home&&BLOCKS.some(b=>b.id===id))||available.some(b=>b.id===id));
+ const cards=order.map(id=>{
+  const custom=available.find(b=>b.id===id);if(custom)return customCard(custom);
+  const b=BLOCKS.find(block=>block.id===id),visible=data.settings.sections?.[id]!==false;
+  return '<div class="builder-card" draggable="true" data-block="'+esc(id)+'" tabindex="0" aria-label="'+esc(b.name)+'">'+
+   '<span class="drag-handle" title="Drag to reorder">⠿</span><div class="builder-card-body"><strong>'+esc(b.name)+'</strong><small>'+esc(b.detail)+'</small></div>'+
+   '<label class="builder-visibility"><input type="checkbox" data-block-visible="'+esc(id)+'" '+(visible?"checked":"")+' aria-label="Show '+esc(b.name)+'"> Show</label>'+
+   '<button type="button" data-block-edit="'+esc(b.tab)+'">Edit</button>'+
+   '<button type="button" data-block-up="'+esc(id)+'" aria-label="Move up">↑</button><button type="button" data-block-down="'+esc(id)+'" aria-label="Move down">↓</button></div>';
+ }).join("");
+ const pageButtons=[["home","Home"],["products","Scope of Work"],["catalog","Countertops"],["cabinets","Cabinets"],["projects","Gallery"],["about","About"],["contact","Contact"]].map(([key,label])=>'<button type="button" data-preview-page="'+key+'" class="'+(previewPage===key?"selected":"")+'">'+label+'</button>').join("");
+ root.innerHTML='<div class="panel-header"><h2>Visual page builder</h2><p>Select a page, add or reorder its sections, and preview your unpublished edits instantly.</p></div>'+
+ '<div class="builder-layout"><div class="builder-controls"><div class="builder-label">'+esc(PAGE_NAMES[previewPage])+ ' layout <span>Drag ⠿ to reorder</span></div>'+
+ '<div id="builder-blocks">'+cards+'</div><div class="builder-add"><strong>Add a new section</strong><div class="builder-add-buttons">'+Object.entries(CUSTOM_TYPES).map(([id,t])=>'<button type="button" data-custom-add="'+id+'">+ '+esc(t.label)+'</button>').join("")+'</div></div><p class="help-line">Built-in page sections stay in place. Custom sections can be reordered and managed here.</p>'+
+ customEditPanel()+(["catalog","cabinets"].includes(previewPage)?'<div class="builder-panel"><strong>Manage product images</strong><p>Add a new image card, or click Edit / Remove on a card in the preview.</p><button type="button" data-catalog-add-left>+ Add product image</button>'+(selectedCatalogIndex>=0&&data[previewPage==="catalog"?"catalog":"cabinetCatalog"]?.[selectedCatalogIndex]?'<div class="collection-row"><h3>Editing product '+(selectedCatalogIndex+1)+'</h3>'+schemas[previewPage].fields.map(([k,label,type])=>fieldHTML(label,type,(previewPage==="catalog"?"catalog":"cabinetCatalog")+"."+selectedCatalogIndex+"."+k)).join("")+'<button type="button" data-catalog-remove-left>Remove this product</button></div>':'')+'</div>':'')+(home?'<div class="builder-panel"><strong>Quick-edit homepage</strong><p>Changes appear immediately in the live preview.</p>'+
+ fieldHTML("Hero headline","textarea","hero.title")+fieldHTML("Hero description","textarea","hero.description")+
+ fieldHTML("Welcome headline",null,"home.introTitle")+fieldHTML("Closing banner headline",null,"home.ctaTitle")+'</div>':'')+
+ '<div class="builder-panel"><strong>Tools</strong><div class="builder-tool-row"><button type="button" data-builder-action="reset">Restore default order</button><button type="button" data-builder-action="showall">Show all sections</button></div></div></div>'+
+ '<div class="builder-preview"><div class="builder-preview-tools"><div class="preview-pages">'+pageButtons+'</div>'+
+ '<div class="builder-size"><button type="button" data-preview-mode="desktop" class="'+(previewMode==="desktop"?"selected":"")+'">Desktop</button>'+
+ '<button type="button" data-preview-mode="mobile" class="'+(previewMode==="mobile"?"selected":"")+'">Mobile</button></div></div>'+
+ '<div class="builder-viewport '+previewMode+'"><iframe id="builder-frame" title="Live website preview" loading="eager" src="../'+(previewPage==="home"?"index":previewPage==="products"?"scope-of-work":previewPage==="catalog"?"products":previewPage==="cabinets"?"cabinets":previewPage==="projects"?"design-reference":previewPage==="about"?"our-approach":previewPage==="contact"?"request-a-bid":previewPage)+'.html?preview=1"></iframe></div>'+
+ '<p class="help-line">This preview uses your unsaved edits. Only “Publish changes” updates the public website.</p></div></div>';
+ const frame=$("#builder-frame");frame.addEventListener("load",updatePreview);
+ updatePreview();
+}
+function orderChange(from,to){
+ const order=currentOrder();
+ const fromIndex=order.indexOf(from),toIndex=order.indexOf(to);
+ if(fromIndex<0||toIndex<0||fromIndex===toIndex)return;
+ order.splice(fromIndex,1);order.splice(toIndex,0,from);
+ markDirty();render();updatePreview();
+}
+function builderClick(event){
+ const el=event.target.closest("button");
+ if(!el)return;
+ const newType=el.dataset.customAdd;
+ if(newType){
+   if(!CUSTOM_TYPES[newType])return;
+   snapshot();
+   newCustomBlock(newType);
+   window.kSelectedCustom=data.settings.customBlocks[data.settings.customBlocks.length-1]?.id||null;
+   render();
+   updatePreview();
+   return;
+ }
+ const selectedId=el.dataset.customEdit;
+ if(selectedId){window.kSelectedCustom=selectedId;render();return;}
+ const duplicateId=el.dataset.customDuplicate;
+ if(duplicateId){
+   const original=customOnPage().find(b=>b.id===duplicateId);
+   if(!original)return;
+   snapshot();newCustomBlock(original.type,{...original,title:(original.title||"Section")+" (copy)"});
+   window.kSelectedCustom=data.settings.customBlocks[data.settings.customBlocks.length-1]?.id||null;
+   render();updatePreview();return;
+ }
+ const deleteId=el.dataset.customDelete;
+ if(deleteId){
+   const index=data.settings.customBlocks.findIndex(b=>b.id===deleteId&&b.page===previewPage);
+   if(index<0||!confirm("Remove this section? Publish to make the change live."))return;
+   snapshot();data.settings.customBlocks.splice(index,1);
+   const order=currentOrder(),orderIndex=order.indexOf(deleteId);
+   if(orderIndex>=0)order.splice(orderIndex,1);
+   if(window.kSelectedCustom===deleteId)window.kSelectedCustom=null;
+   markDirty();render();updatePreview();return;
+ }
+ const done=el.dataset.customDone;
+ if(done){window.kSelectedCustom=null;render();return;}
+ const edit=el.dataset.blockEdit;
+ if(edit){active=edit;render();return;}
+ const up=el.dataset.blockUp,down=el.dataset.blockDown;
+ if(up||down){
+   const id=up||down,order=currentOrder(),index=order.indexOf(id);
+   const other=order[index+(up?-1:1)];if(other)orderChange(id,other);return;
+ }
+ const mode=el.dataset.previewMode;
+ if(mode){previewMode=mode;$(".builder-viewport")?.classList.toggle("mobile",mode==="mobile");$(".builder-viewport")?.classList.toggle("desktop",mode!=="mobile");document.querySelectorAll("[data-preview-mode]").forEach(b=>b.classList.toggle("selected",b.dataset.previewMode===mode));return;}
+ const pageKey=el.dataset.previewPage;
+ if(pageKey){previewPage=pageKey;selectedCatalogIndex=-1;window.kSelectedCustom=null;render();return;}
+ const action=el.dataset.builderAction;
+ if(action==="reset"){setCurrentOrder([...(previewPage==="home"?BLOCKS.map(b=>b.id):[]),...customOnPage().map(b=>b.id)]);markDirty();render();updatePreview();}
+ if(action==="showall"){BLOCKS.forEach(b=>{data.settings.sections[b.id]=true;});data.settings.customBlocks.forEach(b=>b.visible=true);markDirty();render();updatePreview();}
+}
+
+
+function renderCanvas(){
+ const conf=data.settings.designCanvas||{enabled:true,elements:[]};
+ const es=conf.elements||[];
+ $("#editor-nav").innerHTML=sections.map(id=>'<button data-tab="'+id+'" class="'+(id===active?"active":"")+'">'+esc(schemas[id].title)+'</button>').join("");
+ $("#editor").innerHTML='<div class="panel-header"><h2>Design canvas</h2><p>Add movable text, images, and buttons. Position in percentages for responsive layouts and publish with your site.</p></div>'+
+ '<div class="canvas-tools"><button data-canvas-add="text">+ Text</button><button data-canvas-add="image">+ Image</button><button data-canvas-add="button">+ Button</button><button data-canvas-toggle="1">'+(conf.enabled?"Disable overlay":"Enable overlay")+'</button></div>'+
+ '<div class="canvas-workspace"><div id="design-stage" class="design-stage">'+es.map((e,i)=>'<div draggable="true" data-canvas-item="'+i+'" class="design-object" style="left:'+Number(e.x||0)+'%;top:'+Number(e.y||0)+'%;width:'+Number(e.width||30)+'%">'+esc(e.text||e.type)+'</div>').join("")+'</div>'+
+ '<div class="canvas-properties">'+es.map((e,i)=>'<div class="builder-panel"><strong>'+esc(e.type)+' '+(i+1)+'</strong>'+
+ '<div class="field"><label>Text / description</label><input data-canvas-prop="'+i+'" data-key="text" value="'+esc(e.text)+'"></div>'+
+ '<div class="field"><label>Image URL</label><input data-canvas-prop="'+i+'" data-key="src" value="'+esc(e.src)+'"></div>'+
+ '<div class="field"><label>Link</label><input data-canvas-prop="'+i+'" data-key="href" value="'+esc(e.href)+'"></div>'+
+ '<div class="field"><label>Horizontal position (%)</label><input type="number" min="0" max="100" data-canvas-prop="'+i+'" data-key="x" value="'+Number(e.x||0)+'"></div>'+
+ '<div class="field"><label>Vertical position (%)</label><input type="number" min="0" max="100" data-canvas-prop="'+i+'" data-key="y" value="'+Number(e.y||0)+'"></div>'+
+ '<div class="field"><label>Width (%)</label><input type="number" min="5" max="100" data-canvas-prop="'+i+'" data-key="width" value="'+Number(e.width||30)+'"></div>'+
+ '<div class="field"><label>Font size (px)</label><input type="number" min="10" max="96" data-canvas-prop="'+i+'" data-key="fontSize" value="'+Number(e.fontSize||28)+'"></div>'+
+ '<div class="field"><label>Hex color</label><input data-canvas-prop="'+i+'" data-key="color" value="'+esc(e.color||"#ffffff")+'"></div>'+
+ '<div class="field"><label>Motion</label><select data-canvas-prop="'+i+'" data-key="motion">'+["none","fade","float","zoom","slide"].map(m=>'<option '+(e.motion===m?"selected":"")+'>'+m+'</option>').join("")+'</select></div>'+
+ '<button data-canvas-delete="'+i+'">Remove element</button></div>').join("")+'</div></div>';
+ const stage=$("#design-stage");
+ stage.addEventListener("dragstart",event=>{const item=event.target.closest("[data-canvas-item]");if(item)event.dataTransfer.setData("text/plain",item.dataset.canvasItem);});
+ stage.addEventListener("dragover",event=>event.preventDefault());
+ stage.addEventListener("drop",event=>{
+  event.preventDefault();const i=Number(event.dataTransfer.getData("text/plain")),bounds=stage.getBoundingClientRect();
+  if(!Number.isInteger(i)||!es[i])return;
+  snapshot();
+  es[i].x=Math.max(0,Math.min(100,Math.round((event.clientX-bounds.left)/bounds.width*100)));
+  es[i].y=Math.max(0,Math.min(100,Math.round((event.clientY-bounds.top)/bounds.height*100)));
+  markDirty();render();updatePreview();
+ });
+}
+
+function renderPageManager(){
+ data.settings.pages ||= [];
+ $("#editor-nav").innerHTML=sections.map(id=>'<button type="button" class="'+(id===active?"active":"")+'" data-tab="'+id+'">'+esc(schemas[id].title)+'</button>').join("");
+ $("#editor").innerHTML='<div class="panel-header"><h2>Pages Manager</h2><p>Create, duplicate, edit and hide pages without code. Click Publish changes when done.</p></div>'+
+ '<div class="builder-panel"><strong>Create new page</strong><div class="field"><input id="new-page-title" placeholder="e.g. Kitchen Cabinets"></div><button type="button" data-pm="create">+ Create Page</button></div>'+
+ data.settings.pages.map((p,i)=>'<article class="builder-panel"><strong>'+esc(p.title)+'</strong><p>page.html?slug='+esc(p.slug)+'</p>'+
+ fieldHTML("Title",null,"settings.pages."+i+".title")+fieldHTML("Navigation label",null,"settings.pages."+i+".navLabel")+
+ fieldHTML("Introduction","textarea","settings.pages."+i+".intro")+fieldHTML("Image","image","settings.pages."+i+".image")+
+ fieldHTML("SEO title",null,"settings.pages."+i+".seoTitle")+fieldHTML("SEO description","textarea","settings.pages."+i+".description")+
+ fieldHTML("Page visible","checkbox","settings.pages."+i+".visible")+
+ '<div class="builder-tool-row"><button type="button" data-pm="duplicate" data-index="'+i+'">Duplicate</button><button type="button" data-pm="delete" data-index="'+i+'">Delete</button></div></article>').join("");
+}
+function pageManagerAction(event){
+ const b=event.target.closest("[data-pm]");if(!b)return;
+ const pages=data.settings.pages,kind=b.dataset.pm,i=Number(b.dataset.index);
+ if(kind==="create"){const title=$("#new-page-title")?.value.trim();if(!title)return status("Enter a title first.",true);
+   const slug=makeSlug(title);if(!slug)return status("Invalid title.",true);
+   snapshot();pages.push({slug,title,navLabel:title,intro:"Edit this introduction",image:"",seoTitle:title,description:"",visible:true});data.settings.pageBlocks||={};data.settings.pageBlocks["custom:"+slug]=[];
+ }else if(pages[i]&&kind==="duplicate"){const slug=makeSlug(pages[i].title+" copy");snapshot();pages.splice(i+1,0,{...pages[i],slug,title:pages[i].title+" (copy)"});data.settings.pageBlocks["custom:"+slug]=[];
+ }else if(pages[i]&&kind==="delete"){if(!confirm("Delete page? You can cancel by not publishing."))return;snapshot();const deleted=pages.splice(i,1)[0];delete data.settings.pageBlocks?.["custom:"+deleted.slug];data.settings.customBlocks=(data.settings.customBlocks||[]).filter(b=>b.page!=="custom:"+deleted.slug);
+ }else return;
+ markDirty();render();
+}
+function makeSlug(title){const base=title.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,55);if(!base)return "";let slug=base,n=2;while(data.settings.pages.some(p=>p.slug===slug))slug=base+"-"+n++;return slug;}
+function render(){
+ if(active==="pages"){renderPageManager();return;}
+ if(active==="canvas"){renderCanvas();return;}
+ if(active==="builder"){renderBuilder();return;}
+ const schema=schemas[active];if(!schema||!data)return;
+ $("#editor-nav").innerHTML=sections.map(id=>'<button type="button" class="'+(id===active?"active":"")+'" data-tab="'+id+'" aria-current="'+(id===active?"page":"false")+'">'+esc(schemas[id].title)+'</button>').join("");
+ let html='<div class="panel-header"><h2>'+esc(schema.title)+'</h2><p>'+esc(schema.description)+'</p></div>';
+ if(schema.arrayPath){
+   const items=getValue(schema.arrayPath)||[];
+   html+= '<p class="help-line">Edit these items in any order. Save your changes using “Publish changes”.</p>';
+   items.forEach((entry,i)=>{
+      html+='<article class="collection-row"><div class="collection-heading"><h3>'+esc(entry.title||entry.name||entry.number||"Item")+" "+(entry.title?"":"#"+(i+1))+'</h3>'+
+       '<div class="row-actions"><button type="button" data-action="up" data-index="'+i+'"'+(i===0?" disabled":"")+'>↑ Move up</button>'+
+       '<button type="button" data-action="down" data-index="'+i+'"'+(i===items.length-1?" disabled":"")+'>↓ Move down</button>'+
+       '<button type="button" data-action="delete" data-index="'+i+'">Remove</button></div></div>'+
+       '<div class="fields">'+schema.fields.map(([k,label,type])=>fieldHTML(label,type,schema.arrayPath+"."+i+"."+k)).join("")+'</div></article>';
+   });
+   html+='<button type="button" class="add-row" data-action="add">+ Add '+(active==="cabinetSpecs"?"construction detail":active==="catalog"?"stone product":active==="products"?"product":active==="projects"?"gallery item":active==="navigation"?"menu link":"step")+'</button>';
+ } else {
+   html+='<div class="fields">'+schema.fields.map(([k,label,type])=>fieldHTML(label,type,(schema.basePath||active)+"."+k)).join("")+'</div>';
+   if(active==="contact")html+='<div class="notice"><strong>Contact form:</strong> Without a form endpoint, visitors can prepare an email from the contact page. For automatic submissions, paste an HTTPS endpoint from a form provider that accepts JSON POST requests, and configure that provider to permit requests from your hosted site.</div>';
+   if(active==="brand")html+='<div class="notice">The logo shown by default is the supplied K Cabinetry emblem hosted on your existing website. You can upload it here to save a copy into your new GitHub site.</div>';
+ }
+ if(active==="navigation")html+='<div class="notice">Menu links use page keys: home, about, products, projects, contact. Hiding a menu link does not disable direct page access.</div>';
+ $("#editor").innerHTML=html;
+}
+function encode(text){
+ const bytes=new TextEncoder().encode(text);let chars="";
+ for(let i=0;i<bytes.length;i+=8192)chars+=String.fromCharCode(...bytes.subarray(i,i+8192));
+ return btoa(chars);
+}
+function decode(content){
+ const raw=atob(content.replace(/\s+/g,""));
+ return new TextDecoder().decode(Uint8Array.from(raw,ch=>ch.charCodeAt(0)));
+}
+async function github(method,path,body){
+ if(!token)throw Error("Please reconnect to GitHub.");
+ const response=await fetch(API+path+(method==="GET"?"?ref="+encodeURIComponent(BRANCH):""),{
+    method,headers:{"Authorization":"Bearer "+token,"Accept":"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28",...(body?{"Content-Type":"application/json"}:{})},...(body?{body:JSON.stringify(body)}:{})
+ });
+ if(!response.ok){
+   let extra="";try{const payload=await response.json();extra=payload.message||"";}catch{}
+   if(response.status===401||response.status===403)throw Error("GitHub access denied. Check that your token can access this repository with Contents: Read and write. "+extra);
+   if(response.status===409)throw Error("Your file changed in GitHub. Refresh and reconnect to avoid overwriting someone else's changes.");
+   throw Error("GitHub request failed ("+response.status+"). "+extra);
+ }
+ return response.json();
+}
+async function signIn(event){
+ event.preventDefault();
+ token=$("#token").value.trim();
+ if(!token)return;
+ const btn=$("#login-form button");btn.disabled=true;
+ status("Connecting securely to GitHub…",false,"#login-status");
+ try{
+   const item=await github("GET",DOC);
+   sha=item.sha;data=JSON.parse(decode(item.content));history=[];future=[];
+   if(!data.settings)throw Error("Content settings unavailable; please reload the page.");
+   ensureCustom();
+   $("#login").hidden=true;$("#dashboard").hidden=false;$("#signout").hidden=false;
+   $("#token").value="";
+   active="builder";markClean();render();status("Connected. Choose a section to begin.");
+ }catch(err){token="";status(err.message,true,"#login-status");}
+ finally{btn.disabled=false;}
+}
+function signOut(){
+ token="";sha="";data=null;dirty=false;
+ $("#dashboard").hidden=true;$("#login").hidden=false;$("#signout").hidden=true;$("#token").value="";
+ status("",false,"#login-status");
+}
+async function publish(){
+ if(!dirty||busy||!data)return;
+ busy=true;$("#publish").disabled=true;
+ status("Publishing changes to GitHub…");
+ try{
+   const json=JSON.stringify(data,null,2)+"\n";
+   const result=await github("PUT",DOC,{message:"Edit K Cabinetry website content via Content Studio",content:encode(json),branch:BRANCH,sha});
+   sha=result.content.sha;markClean();status("Published successfully. Refresh the website to see your updates; hosting caches can take a few minutes.");
+ }catch(err){status(err.message,true);$("#publish").disabled=false;}
+ finally{busy=false;if(dirty)$("#publish").disabled=false;}
+}
+function editList(event){
+ const button=event.target.closest("[data-action]");if(!button)return;
+ const schema=schemas[active];if(!schema?.arrayPath)return;
+ const items=getValue(schema.arrayPath);
+ if(!Array.isArray(items))return;
+ const action=button.dataset.action,i=Number(button.dataset.index);
+ if(action==="add"){
+   const record=Object.fromEntries(schema.fields.map(([key])=>[key,""]));
+   if(active==="products")record.id="collection-"+Date.now();
+   if(active==="catalog"){record.material="Granite";record.group="Group 1";}
+   if(active==="navigation"){record.page="home";record.visible=true;}
+   if(active==="benefits"||active==="steps")record.number=String(items.length+1).padStart(2,"0");
+   items.push(record);
+ }else if(action==="delete"){
+   if(!confirm("Remove this item from the website? You can still cancel by not publishing."))return;
+   items.splice(i,1);
+ }else if(action==="up"&&i>0){[items[i-1],items[i]]=[items[i],items[i-1]];}
+ else if(action==="down"&&i<items.length-1){[items[i],items[i+1]]=[items[i+1],items[i]];}
+ else return;
+ markDirty();render();updatePreview();
+}
+async function uploadImage(path){
+ const picker=document.createElement("input");picker.type="file";picker.accept="image/png,image/jpeg,image/webp,image/avif,image/gif";
+ picker.addEventListener("change",async()=>{
+   const file=picker.files?.[0];if(!file)return;
+   const allowed=["image/png","image/jpeg","image/webp","image/avif","image/gif"];
+   if(!allowed.includes(file.type)){status("Upload a JPG, PNG, WebP, AVIF or GIF file.",true);return;}
+   if(file.size>4*1024*1024){status("Image is larger than 4 MB. Please resize it first.",true);return;}
+   const button=Array.from(document.querySelectorAll("[data-upload]")).find(b=>b.dataset.upload===path);
+   if(button)button.disabled=true;
+   status("Uploading image to GitHub…");
+   try{
+     const reader=new FileReader();
+     const base64=await new Promise((resolve,reject)=>{
+       reader.onload=()=>resolve(String(reader.result).split(",")[1]);
+       reader.onerror=()=>reject(Error("Could not read image."));reader.readAsDataURL(file);
+     });
+     const basename=file.name.replace(/\.[^.]+$/,"").toLowerCase().replace(/[^a-z0-9-]+/g,"-").slice(0,55).replace(/^-|-$/g,"")||"photo";
+     const extension={"image/png":"png","image/jpeg":"jpg","image/webp":"webp","image/avif":"avif","image/gif":"gif"}[file.type];
+     const filename=Date.now()+"-"+basename+"."+extension;
+     await github("PUT",FOLDER+"/media/"+filename,{message:"Upload K Cabinetry website photo: "+basename,content:base64,branch:BRANCH});
+     putValue(path,"media/"+filename);render();
+     status("Photo uploaded. Click Publish changes to add the new image to your website content.");
+   }catch(err){status("Upload failed: "+err.message,true);}
+   finally{if(button)button.disabled=false;}
+ });
+ picker.click();
+}
+$("#login-form").addEventListener("submit",signIn);
+$("#signout").addEventListener("click",()=>{if(dirty&&!confirm("Discard changes not yet published?"))return;signOut();});
+$("#publish").addEventListener("click",publish);
+function catalogAction(action,index=-1,material="Granite"){
+ if(!["catalog","cabinets"].includes(previewPage))return;
+ const key=previewPage==="catalog"?"catalog":"cabinetCatalog";
+ const list=data[key]|| (data[key]=[]);
+ if(action==="add"){
+   snapshot();list.push(previewPage==="catalog"?{name:"New sample",material,group:"Group 1",description:"",image:""}:{name:"New cabinet",group:"Kitchen Cabinets",description:"",image:""});
+   selectedCatalogIndex=list.length-1;markDirty();render();updatePreview();
+ } else if(action==="edit"&&list[index]){selectedCatalogIndex=index;render();}
+ else if(action==="remove"&&list[index]){if(!confirm("Remove this product image from the page? Publish to make it live."))return;snapshot();list.splice(index,1);selectedCatalogIndex=-1;markDirty();render();updatePreview();}
+}
+window.addEventListener("message",event=>{
+ if(event.origin!==location.origin||event.data?.type!=="K_CABINETRY_CATALOG_ACTION")return;
+ const frame=$("#builder-frame");if(active!=="builder"||event.source!==frame?.contentWindow||!data)return;
+ if(event.data.key!==(previewPage==="catalog"?"catalog":"cabinetCatalog"))return;
+ catalogAction(event.data.action,Number(event.data.index),event.data.material);
+});
+window.addEventListener("message",event=>{
+ if(event.origin!==location.origin||event.data?.type!=="K_CABINETRY_INLINE_EDIT")return;
+ const frame=$("#builder-frame");if(!frame||event.source!==frame.contentWindow||!data)return;
+ const path=String(event.data.path||"");
+ if(!/^(?:hero|home|about|contact)\.[a-zA-Z]+$|^products\.\d+\.(?:title|short)$|^settings\.customBlocks\.\d+\.(?:title|body)$|^settings\.textOverrides\.[a-zA-Z0-9:-]+\.text-\d+$/.test(path))return;
+ putValue(path,String(event.data.value||"").slice(0,3000));
+ status("Draft updated. Click Publish changes when ready.");
+});
+
+$("#undo")?.addEventListener("click",()=>undoRedo(true));
+$("#redo")?.addEventListener("click",()=>undoRedo(false));
+$("#editor-nav").addEventListener("click",event=>{
+ const target=event.target.closest("[data-tab]");
+ if(target){active=target.dataset.tab;render();}
+});
+$("#editor").addEventListener("change",event=>{
+ const prop=event.target.closest("[data-canvas-prop]");if(prop&&active==="canvas"){const i=Number(prop.dataset.canvasProp),key=prop.dataset.key;if(!data.settings.designCanvas.elements[i])return;snapshot();data.settings.designCanvas.elements[i][key]=["x","y","width","fontSize"].includes(key)?Number(prop.value):prop.value;markDirty();render();updatePreview();return;}
+ const box=event.target.closest("[data-block-visible]");
+ if(box && active==="builder"){putValue("settings.sections."+box.dataset.blockVisible,box.checked);}
+ const custom=event.target.closest("[data-custom-visible]");
+ if(custom&&active==="builder"){const idx=data.settings.customBlocks.findIndex(b=>b.id===custom.dataset.customVisible);if(idx>=0)putValue("settings.customBlocks."+idx+".visible",custom.checked);}
+});
+$("#editor").addEventListener("dragstart",event=>{
+ const card=event.target.closest("[data-block]");if(!card)return;
+ draggedId=card.dataset.block;event.dataTransfer.effectAllowed="move";event.dataTransfer.setData("text/plain",draggedId);
+});
+$("#editor").addEventListener("dragover",event=>{if(event.target.closest("[data-block]")){event.preventDefault();event.dataTransfer.dropEffect="move";}});
+$("#editor").addEventListener("drop",event=>{
+ const target=event.target.closest("[data-block]");if(target&&draggedId){event.preventDefault();orderChange(draggedId,target.dataset.block);}draggedId=null;
+});
+$("#editor").addEventListener("dragend",()=>{draggedId=null;});
+$("#editor").addEventListener("input",event=>{
+ const el=event.target.closest("[data-path]");
+ if(el)putValue(el.dataset.path,el.type==="checkbox"?el.checked:el.value);
+});
+$("#editor").addEventListener("change",event=>{
+ const el=event.target.closest("[data-path]");
+ if(el&&/\.(image|logo)$/.test(el.dataset.path))render();
+});
+$("#editor").addEventListener("click",event=>{
+ if(active==="pages"&&event.target.closest("[data-pm]")){pageManagerAction(event);return;}
+ const add=event.target.closest("[data-canvas-add]");if(add&&active==="canvas"){snapshot();data.settings.designCanvas.elements.push({id:"el-"+Date.now(),type:add.dataset.canvasAdd,text:"New element",src:"",href:"./contact.html",x:10,y:20,width:30,fontSize:28,color:"#ffffff",motion:"none",visible:true});markDirty();render();updatePreview();return;}
+ const del=event.target.closest("[data-canvas-delete]");if(del&&active==="canvas"){snapshot();data.settings.designCanvas.elements.splice(Number(del.dataset.canvasDelete),1);markDirty();render();updatePreview();return;}
+ const toggle=event.target.closest("[data-canvas-toggle]");if(toggle&&active==="canvas"){snapshot();data.settings.designCanvas.enabled=!data.settings.designCanvas.enabled;markDirty();render();updatePreview();return;}
+ if(active==="builder"){
+  const add=event.target.closest("[data-catalog-add-left]"),del=event.target.closest("[data-catalog-remove-left]");
+  if(add){catalogAction("add");return;}if(del){catalogAction("remove",selectedCatalogIndex);return;}
+  builderClick(event);
+}
+ const upload=event.target.closest("[data-upload]");
+ if(upload){uploadImage(upload.dataset.upload);return;}
+ editList(event);
+});
+window.addEventListener("beforeunload",e=>{if(dirty){e.preventDefault();e.returnValue="";}});
+})();
