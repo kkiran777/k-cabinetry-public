@@ -444,7 +444,7 @@ async function uploadImage(path){
      const basename=file.name.replace(/\.[^.]+$/,"").toLowerCase().replace(/[^a-z0-9-]+/g,"-").slice(0,55).replace(/^-|-$/g,"")||"photo";
      const extension={"image/png":"png","image/jpeg":"jpg","image/webp":"webp","image/avif":"avif","image/gif":"gif"}[file.type];
      const filename=Date.now()+"-"+basename+"."+extension;
-     await github("PUT",FOLDER+"/media/"+filename,{message:"Upload K Cabinetry website photo: "+basename,content:base64,branch:BRANCH});
+     await github("PUT",(FOLDER?FOLDER+"/":"")+"media/"+filename,{message:"Upload K Cabinetry website photo: "+basename,content:base64,branch:BRANCH});
      putValue(path,"media/"+filename);render();
      status("Photo uploaded. Click Publish changes to add the new image to your website content.");
    }catch(err){status("Upload failed: "+err.message,true);}
